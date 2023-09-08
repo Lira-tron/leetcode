@@ -13,15 +13,15 @@ func Test_maxArea(t *testing.T) {
 	}{
 		{
 			name: "Example 1",
-			args: args {
-				height: []int { 1,8,6,2,5,4,8,3,7 },
+			args: args{
+				height: []int{1, 8, 6, 2, 5, 4, 8, 3, 7},
 			},
 			want: 49,
 		},
 		{
 			name: "Example 2",
-			args: args {
-				height: []int { 1,1 },
+			args: args{
+				height: []int{1, 1},
 			},
 			want: 1,
 		},
