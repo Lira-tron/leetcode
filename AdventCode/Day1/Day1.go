@@ -49,51 +49,45 @@ import (
 // Consider your entire calibration document. What is the sum of all of the calibration values?
 
 func solve() {
-	fmt.Println("Starting test")
 	f, err := os.Open("input.txt")
 	if err != nil {
 		fmt.Printf("error opening file: %v\n", err)
 		os.Exit(1)
 	}
-	var wg sync.WaitGroup
-	inChan := make(chan string)
-	outChan := make(chan int)
-	for i := 0; i < 10; i++ {
-		go process(inChan, outChan)
-	}
 
-	r := bufio.NewReader(f)
-	for {
-		line, err := r.ReadString('\n')
-		if err != nil {
-			break
-		}
-		if len(strings.TrimSpace(line)) == 0 {
-			continue
-		}
-		fmt.Println("line", line)
-		wg.Add(1)
-		inChan <- line
-	}
-	go func() {
-		fmt.Println("Waiting")
-		wg.Wait()
-		fmt.Println("Done Waiting")
-		close(outChan)
-		close(inChan)
-	}()
+	ch := generateData(f)
 
 	var res int
-	for cur := range outChan {
-		fmt.Println(cur)
+	for cur := range ch {
 		res += cur
-		wg.Done()
 	}
 	fmt.Println("Result", res)
 }
 
-func process(inChan <-chan string, outChan chan<- int) {
-	line := <-inChan
+func generateData(f *os.File) <-chan int {
+	var wg sync.WaitGroup
+	ch := make(chan int)
+	r := bufio.NewReader(f)
+	go func() {
+		defer close(ch)
+		for {
+			line, err := r.ReadString('\n')
+			if err != nil {
+				break
+			}
+			if len(strings.TrimSpace(line)) == 0 {
+				continue
+			}
+			wg.Add(1)
+			go process(line, ch, &wg)
+		}
+		wg.Wait()
+	}()
+	return ch
+}
+
+func process(line string, ch chan<- int, wg *sync.WaitGroup) {
+	defer wg.Done()
 	var cur, l int
 	r := len(line) - 1
 	var lb, rb bool
@@ -115,7 +109,5 @@ func process(inChan <-chan string, outChan chan<- int) {
 		l++
 		r--
 	}
-	fmt.Println("len", len(line))
-	fmt.Println("Cur", cur)
-	outChan <- cur
+	ch <- cur
 }
