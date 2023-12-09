@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"unicode"
 )
 
 // --- Day 1: Trebuchet?! ---
@@ -49,6 +48,7 @@ import (
 // Consider your entire calibration document. What is the sum of all of the calibration values?
 
 func solve() {
+	fmt.Println("Starting test")
 	f, err := os.Open("input.txt")
 	if err != nil {
 		fmt.Printf("error opening file: %v\n", err)
@@ -79,35 +79,11 @@ func generateData(f *os.File) <-chan int {
 				continue
 			}
 			wg.Add(1)
-			go process(line, ch, &wg)
+
+			// go doPart1(line, ch, &wg)
+			go doPart2(line, ch, &wg)
 		}
 		wg.Wait()
 	}()
 	return ch
-}
-
-func process(line string, ch chan<- int, wg *sync.WaitGroup) {
-	defer wg.Done()
-	var cur, l int
-	r := len(line) - 1
-	var lb, rb bool
-
-	for l < len(line) && (!lb || !rb) {
-		if !unicode.IsDigit(rune(line[l])) && !unicode.IsDigit(rune(line[r])) {
-			l++
-			r--
-			continue
-		}
-		if !lb && unicode.IsDigit(rune(line[l])) {
-			cur += int(line[l]-'0') * 10
-			lb = true
-		}
-		if !rb && unicode.IsDigit(rune(line[r])) {
-			cur += int(line[r] - '0')
-			rb = true
-		}
-		l++
-		r--
-	}
-	ch <- cur
 }
